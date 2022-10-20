@@ -4,6 +4,10 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.3203125" />
+        <entry key="topcrop/src/main/res/drawable/ic_baseline_arrow_back_24.xml" value="0.154" />
+        <entry key="topcrop/src/main/res/drawable/ic_baseline_done_24.xml" value="0.154" />
+        <entry key="topcrop/src/main/res/layout-night/activity_crop.xml" value="0.14427083333333332" />
+        <entry key="topcrop/src/main/res/layout/activity_crop.xml" value="0.165" />
       </map>
     </option>
   </component>

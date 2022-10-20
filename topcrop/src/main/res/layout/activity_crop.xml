@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <RelativeLayout
+        android:id="@+id/toolbar"
+        android:layout_height="?android:actionBarSize"
+        android:layout_width="match_parent"
+        android:elevation="1dp"
+        android:background="@color/colorBackground">
+
+        <ImageButton
+            android:id="@+id/ib_back"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_baseline_arrow_back_24"
+            app:tint="@color/colorOnBackground"
+            android:background="?selectableItemBackground"
+            android:paddingHorizontal="16dp"/>
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Crop Photo"
+            android:textColor="@color/colorOnBackground"
+            android:layout_toEndOf="@id/ib_back"
+            android:layout_toStartOf="@id/ib_done"
+            android:layout_centerVertical="true"
+            style="@style/TextAppearance.MaterialComponents.Headline6"/>
+
+        <ImageButton
+            android:id="@+id/ib_done"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="?selectableItemBackground"
+            android:src="@drawable/ic_baseline_done_24"
+            app:tint="@color/colorOnBackground"
+            android:paddingHorizontal="16dp"
+            android:layout_alignParentEnd="true"/>
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/iv_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        tools:src="@tools:sample/backgrounds/scenic"
+        android:layout_below="@id/toolbar"
+        android:layout_above="@id/controls_wrapper"/>
+
+    <FrameLayout
+        android:id="@+id/controls_wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="1dp"
+        android:layout_alignParentBottom="true"/>
+
+</RelativeLayout>
