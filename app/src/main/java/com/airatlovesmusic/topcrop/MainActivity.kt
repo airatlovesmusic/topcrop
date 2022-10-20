@@ -5,7 +5,6 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.airatlovesmusic.topcrop.input.ASPECT_RATIO_ORIGINAL
 import com.airatlovesmusic.topcrop.input.AspectRatio
 import com.airatlovesmusic.topcrop.input.CropOptions
 
@@ -15,7 +14,7 @@ class MainActivity: AppCompatActivity() {
         if (uri != null) {
             cropLauncher.launch(uri to CropOptions.Builder()
                 .addAspectRatio(AspectRatio(3f, 4f))
-                .addAspectRatio(AspectRatio(ASPECT_RATIO_ORIGINAL, ASPECT_RATIO_ORIGINAL, "Original"))
+                .addAspectRatio(AspectRatio(9f, 16f))
                 .build())
         }
     }

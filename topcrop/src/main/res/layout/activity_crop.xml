@@ -44,19 +44,31 @@
 
     </RelativeLayout>
 
-    <ImageView
-        android:id="@+id/iv_image"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        tools:src="@tools:sample/backgrounds/scenic"
-        android:layout_below="@id/toolbar"
-        android:layout_above="@id/controls_wrapper"/>
-
     <FrameLayout
-        android:id="@+id/controls_wrapper"
+        android:id="@+id/ucrop_frame"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_above="@+id/tl_ratios"
+        android:layout_below="@+id/toolbar"
+        android:layout_marginBottom="-12dp">
+
+        <com.airatlovesmusic.topcrop.view.TopCropImageView
+            android:id="@+id/crop_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:src="@tools:sample/backgrounds/scenic"/>
+
+        <com.airatlovesmusic.topcrop.view.GridView
+            android:id="@+id/grid_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </FrameLayout>
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tl_ratios"
+        android:layout_width="match_parent"
+        android:layout_height="?android:actionBarSize"
         android:elevation="1dp"
         android:layout_alignParentBottom="true"/>
 

@@ -9,6 +9,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.airatlovesmusic.topcrop.databinding.ActivityCropBinding
 import com.airatlovesmusic.topcrop.input.CropOptions
+import com.google.android.material.tabs.TabLayout
 
 class TopCropActivity: AppCompatActivity() {
 
@@ -25,10 +26,29 @@ class TopCropActivity: AppCompatActivity() {
                 finish()
             }
             contentResolver.openInputStream(inputUri)?.use {
-                ivImage.setImageBitmap(BitmapFactory.decodeStream(it))
+                cropView.setImageBitmap(BitmapFactory.decodeStream(it))
             }
+            setUpAspectRatios()
         }
         setContentView(binding?.root)
+    }
+
+    private fun ActivityCropBinding.setUpAspectRatios() {
+        options.aspectRatios.forEach {
+            tlRatios.addTab(
+                tlRatios.newTab()
+                    .setText(it.title)
+            )
+        }
+        tlRatios.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                val currentAspectRatio = options.aspectRatios[tab.position].let { it.x / it.y }
+                gridView.setTargetAspectRatio(currentAspectRatio)
+                cropView.targetAspectRatio = currentAspectRatio
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
     }
 
     companion object {

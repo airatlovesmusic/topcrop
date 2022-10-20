@@ -5,4 +5,8 @@
 
     <color name="white">#ffffff</color>
     <color name="black">#000000</color>
+
+    <color name="dim_color">#8c000000</color>
+    <color name="crop_frame_color">#ffffff</color>
+    <color name="grid_color">#80ffffff</color>
 </resources>
