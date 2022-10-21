@@ -56,12 +56,14 @@
             android:id="@+id/crop_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:src="@tools:sample/backgrounds/scenic"/>
+            tools:src="@tools:sample/backgrounds/scenic"
+            android:padding="16dp"/>
 
         <com.airatlovesmusic.topcrop.view.GridView
             android:id="@+id/grid_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:padding="16dp"/>
 
     </FrameLayout>
 

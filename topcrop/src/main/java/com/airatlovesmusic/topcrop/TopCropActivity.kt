@@ -4,11 +4,13 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.graphics.RectF
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.airatlovesmusic.topcrop.databinding.ActivityCropBinding
 import com.airatlovesmusic.topcrop.input.CropOptions
+import com.airatlovesmusic.topcrop.view.GridView
 import com.google.android.material.tabs.TabLayout
 
 class TopCropActivity: AppCompatActivity() {
@@ -29,6 +31,9 @@ class TopCropActivity: AppCompatActivity() {
                 cropView.setImageBitmap(BitmapFactory.decodeStream(it))
             }
             setUpAspectRatios()
+            gridView.listener = object: GridView.Listener {
+                override fun onCropRectUpdated(cropRect: RectF) { cropView.setCropRect(cropRect) }
+            }
         }
         setContentView(binding?.root)
     }
@@ -42,13 +47,15 @@ class TopCropActivity: AppCompatActivity() {
         }
         tlRatios.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                val currentAspectRatio = options.aspectRatios[tab.position].let { it.x / it.y }
+                val currentAspectRatio = options.aspectRatios[tab.position].let { it.y / it.x }
                 gridView.setTargetAspectRatio(currentAspectRatio)
-                cropView.targetAspectRatio = currentAspectRatio
+                cropView.setTargetAspectRatio(currentAspectRatio)
             }
             override fun onTabUnselected(tab: TabLayout.Tab?) {}
             override fun onTabReselected(tab: TabLayout.Tab?) {}
         })
+        gridView.setTargetAspectRatio(options.aspectRatios.first().getValue())
+        cropView.setTargetAspectRatio(options.aspectRatios.first().getValue())
     }
 
     companion object {
