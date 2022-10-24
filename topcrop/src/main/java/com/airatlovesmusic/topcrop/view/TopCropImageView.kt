@@ -16,6 +16,7 @@ import com.airatlovesmusic.topcrop.utils.getRectCenter
 import com.airatlovesmusic.topcrop.utils.getRectCorners
 import com.airatlovesmusic.topcrop.utils.getRectSidesFromCorners
 import com.airatlovesmusic.topcrop.utils.trapToRect
+import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -28,6 +29,8 @@ open class TopCropImageView @JvmOverloads constructor(
     // Gestures
     private val scaleDetector: ScaleGestureDetector by lazy { ScaleGestureDetector(context, ScaleListener()) }
     private val gestureDetector: GestureDetector by lazy { GestureDetector(context, GestureListener(), null, true) }
+    private val rotationDetector: RotationDetector by lazy { RotationDetector { postRotate(it, middlePointX, middlePointY) } }
+
     private var middlePointX = 0f
     private var middlePointY = 0f
 
@@ -58,6 +61,7 @@ open class TopCropImageView @JvmOverloads constructor(
         }
         gestureDetector.onTouchEvent(event)
         scaleDetector.onTouchEvent(event)
+        rotationDetector.onTouchEvent(event)
 
         if (event.action and MotionEvent.ACTION_MASK == MotionEvent.ACTION_UP) {
             setImageFitAspectRatio()
@@ -139,6 +143,13 @@ open class TopCropImageView @JvmOverloads constructor(
         }
     }
 
+    private fun postRotate(deltaAngle: Float, px: Float, py: Float) {
+        if (deltaAngle != 0f) {
+            currentImageMatrix.postRotate(deltaAngle, px, py)
+            imageMatrix = currentImageMatrix
+        }
+    }
+
     fun setTargetAspectRatio(aspectRatio: Float) {
         currentAspectRatio = aspectRatio
         setImageFitAspectRatio()
@@ -166,6 +177,7 @@ open class TopCropImageView @JvmOverloads constructor(
             } else {
                 val tempCropRect = RectF(cropRectF)
                 tmpMatrix.reset()
+                tmpMatrix.setRotate(getMatrixAngle(currentImageMatrix))
                 tmpMatrix.mapRect(tempCropRect)
                 val currentImageSides: FloatArray = getRectSidesFromCorners(currentImageCorners)
                 deltaScale = (tempCropRect.width() / currentImageSides[0]).coerceAtLeast(tempCropRect.height() / currentImageSides[1])
@@ -186,6 +198,7 @@ open class TopCropImageView @JvmOverloads constructor(
 
     private fun calculateImageIndents(): FloatArray {
         tmpMatrix.reset()
+        tmpMatrix.setRotate(-getMatrixAngle(currentImageMatrix))
         val unrotatedImageCorners: FloatArray = currentImageCorners.copyOf()
         tmpMatrix.mapPoints(unrotatedImageCorners)
         val unrotatedCropBoundsCorners: FloatArray = getRectCorners(cropRectF)
@@ -202,12 +215,14 @@ open class TopCropImageView @JvmOverloads constructor(
         indents[2] = if (deltaRight < 0) deltaRight else 0f
         indents[3] = if (deltaBottom < 0) deltaBottom else 0f
         tmpMatrix.reset()
+        tmpMatrix.setRotate(getMatrixAngle(currentImageMatrix))
         tmpMatrix.mapPoints(indents)
         return indents
     }
 
     private fun isImageWrapCropBounds(imageCorners: FloatArray): Boolean {
         tmpMatrix.reset()
+        tmpMatrix.setRotate(-getMatrixAngle(currentImageMatrix))
         val unrotatedImageCorners = imageCorners.copyOf()
         tmpMatrix.mapPoints(unrotatedImageCorners)
         val unrotatedCropBoundsCorners: FloatArray = getRectCorners(cropRectF)
@@ -216,12 +231,15 @@ open class TopCropImageView @JvmOverloads constructor(
             .contains(trapToRect(unrotatedCropBoundsCorners))
     }
 
-    open fun getMatrixScale(matrix: Matrix): Float {
-        return sqrt(
-            getMatrixValue(matrix, Matrix.MSCALE_X).toDouble().pow(2.0)
-                + getMatrixValue(matrix, Matrix.MSKEW_Y).toDouble().pow(2.0)
-        ).toFloat()
-    }
+    private fun getMatrixAngle(matrix: Matrix): Float = -(atan2(
+        getMatrixValue(matrix, Matrix.MSKEW_X).toDouble(),
+        getMatrixValue(matrix, Matrix.MSCALE_X).toDouble()
+    ) * (180 / Math.PI)).toFloat()
+
+    private fun getMatrixScale(matrix: Matrix): Float = sqrt(
+        getMatrixValue(matrix, Matrix.MSCALE_X).toDouble().pow(2.0)
+            + getMatrixValue(matrix, Matrix.MSKEW_Y).toDouble().pow(2.0)
+    ).toFloat()
 
     protected open fun getMatrixValue(
         matrix: Matrix,
