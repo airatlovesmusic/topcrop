@@ -3,11 +3,21 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="app/src/main/res/drawable/ic_close.xml" value="0.154" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.3203125" />
+        <entry key="topcrop/src/main/res/drawable/bg_bottom_container.xml" value="0.207" />
+        <entry key="topcrop/src/main/res/drawable/bg_circle.xml" value="0.1675" />
         <entry key="topcrop/src/main/res/drawable/ic_baseline_arrow_back_24.xml" value="0.154" />
         <entry key="topcrop/src/main/res/drawable/ic_baseline_done_24.xml" value="0.154" />
+        <entry key="topcrop/src/main/res/drawable/ic_close.xml" value="0.154" />
+        <entry key="topcrop/src/main/res/drawable/ic_crop.xml" value="0.154" />
+        <entry key="topcrop/src/main/res/drawable/ic_plus.xml" value="0.154" />
+        <entry key="topcrop/src/main/res/drawable/ic_rotate.xml" value="0.154" />
+        <entry key="topcrop/src/main/res/drawable/ic_scale.xml" value="0.154" />
         <entry key="topcrop/src/main/res/layout-night/activity_crop.xml" value="0.14427083333333332" />
         <entry key="topcrop/src/main/res/layout/activity_crop.xml" value="0.165" />
+        <entry key="topcrop/src/main/res/layout/tab_layout.xml" value="0.30520833333333336" />
+        <entry key="topcrop/src/main/res/menu/bnv_crop_items.xml" value="0.14322916666666666" />
       </map>
     </option>
   </component>
