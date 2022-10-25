@@ -1,62 +1,58 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <RelativeLayout
         android:id="@+id/toolbar"
-        android:layout_height="?android:actionBarSize"
         android:layout_width="match_parent"
-        android:elevation="1dp"
-        android:background="@color/colorBackground">
+        android:layout_height="?android:actionBarSize"
+        android:background="?colorSurface">
 
         <ImageButton
-            android:id="@+id/ib_back"
+            android:id="@+id/ib_close"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:src="@drawable/ic_baseline_arrow_back_24"
-            app:tint="@color/colorOnBackground"
-            android:background="?selectableItemBackground"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_close"
+            app:tint="?attr/colorOnSurface"
+            android:background="?selectableItemBackgroundBorderless"
+            android:layout_centerVertical="true"
             android:paddingHorizontal="16dp"/>
 
         <TextView
-            android:id="@+id/tv_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Crop Photo"
-            android:textColor="@color/colorOnBackground"
-            android:layout_toEndOf="@id/ib_back"
+            android:text="@string/photo_editor"
             android:layout_toStartOf="@id/ib_done"
+            android:layout_toEndOf="@id/ib_close"
             android:layout_centerVertical="true"
+            android:gravity="center_horizontal"
             style="@style/TextAppearance.MaterialComponents.Headline6"/>
 
         <ImageButton
             android:id="@+id/ib_done"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="?selectableItemBackground"
-            android:src="@drawable/ic_baseline_done_24"
-            app:tint="@color/colorOnBackground"
             android:paddingHorizontal="16dp"
+            android:src="@drawable/ic_baseline_done_24"
+            app:tint="?colorOnSurface"
+            android:background="?selectableItemBackgroundBorderless"
             android:layout_alignParentEnd="true"/>
 
     </RelativeLayout>
 
     <FrameLayout
-        android:id="@+id/ucrop_frame"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/tl_ratios"
-        android:layout_below="@+id/toolbar"
-        android:layout_marginBottom="-12dp">
+        android:layout_above="@+id/bottom_container"
+        android:layout_below="@+id/toolbar">
 
         <com.airatlovesmusic.topcrop.view.TopCropImageView
             android:id="@+id/crop_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:src="@tools:sample/backgrounds/scenic"
             android:padding="16dp"/>
 
         <com.airatlovesmusic.topcrop.view.GridView
@@ -67,11 +63,116 @@
 
     </FrameLayout>
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tl_ratios"
+    <LinearLayout
+        android:id="@+id/bottom_container"
         android:layout_width="match_parent"
-        android:layout_height="?android:actionBarSize"
-        android:elevation="1dp"
-        android:layout_alignParentBottom="true"/>
+        android:layout_height="wrap_content"
+        android:paddingVertical="16dp"
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/bg_bottom_container">
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tl_aspect_ratios"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:tabIndicatorHeight="0dp"/>
+
+        <FrameLayout
+            android:id="@+id/fl_rotate"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <com.airatlovesmusic.topcrop.view.WheelView
+                android:id="@+id/wheel_rotation"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <TextView
+                android:id="@+id/tv_rotation_value"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_gravity="center"
+                tools:text="0.01"
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:background="@drawable/bg_circle"
+                android:backgroundTint="?colorPrimary"/>
+
+            <ImageButton
+                android:id="@+id/ib_rotate_left"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:src="@drawable/ic_rotate"
+                android:backgroundTint="?colorSurface"
+                app:tint="?colorOnSurface"/>
+
+            <ImageButton
+                android:id="@+id/ib_rotate_right"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:src="@drawable/ic_rotate"
+                android:rotationY="180"
+                android:layout_gravity="end"
+                android:backgroundTint="?colorSurface"
+                app:tint="?colorOnSurface"/>
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/fl_scale"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <com.airatlovesmusic.topcrop.view.WheelView
+                android:id="@+id/wheel_scale"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <TextView
+                android:id="@+id/tv_scale_value"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_gravity="center"
+                tools:text="0.01"
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:background="@drawable/bg_circle"
+                android:backgroundTint="?colorPrimary"/>
+
+            <ImageButton
+                android:id="@+id/ib_minus"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:src="@drawable/ic_minus"
+                app:tint="?colorOnSurface"
+                android:backgroundTint="?colorSurface"/>
+
+            <ImageButton
+                android:id="@+id/ib_plus"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:src="@drawable/ic_plus"
+                android:layout_gravity="end"
+                app:tint="?colorOnSurface"
+                android:backgroundTint="?colorSurface"/>
+
+        </FrameLayout>
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bnv_items"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:labelVisibilityMode="labeled"
+            app:menu="@menu/bnv_crop_items"
+            app:itemBackground="?colorSurface"
+            app:itemIconTint="@color/selector_bnv_item_contents"
+            app:itemTextColor="@color/selector_bnv_item_contents"/>
+
+    </LinearLayout>
 
 </RelativeLayout>

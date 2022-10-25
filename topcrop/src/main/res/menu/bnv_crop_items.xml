@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/item_crop" android:icon="@drawable/ic_crop" android:title="@string/ucrop_crop"/>
+    <item android:id="@+id/item_scale" android:icon="@drawable/ic_rotate" android:title="@string/ucrop_scale"/>
+    <item android:id="@+id/item_rotate" android:icon="@drawable/ic_scale" android:title="@string/ucrop_rotate"/>
+</menu>

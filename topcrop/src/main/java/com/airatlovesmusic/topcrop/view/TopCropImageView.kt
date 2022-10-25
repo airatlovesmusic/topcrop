@@ -17,6 +17,7 @@ import com.airatlovesmusic.topcrop.utils.getRectCorners
 import com.airatlovesmusic.topcrop.utils.getRectSidesFromCorners
 import com.airatlovesmusic.topcrop.utils.trapToRect
 import kotlin.math.atan2
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -47,9 +48,11 @@ open class TopCropImageView @JvmOverloads constructor(
     private var currentHeight: Float = 0f
     private var initialImageCorners = FloatArray(RECT_CORNER_COORDS_COUNT)
     private var initialImageCenter = FloatArray(RECT_CENTER_COORDS_COUNT)
-    private var minScale = 1f
-    private var maxScale = 1f
+    var minScale = 1f
+    var maxScale = 1f
     private var maxScaleMultiplier = 10.0f
+
+    var listener: Listener? = null
 
     init { scaleType = ScaleType.MATRIX }
 
@@ -78,50 +81,6 @@ open class TopCropImageView @JvmOverloads constructor(
         }
     }
 
-    private fun onImageLaidOut() {
-        val drawable = drawable ?: return
-        val w = drawable.intrinsicWidth.toFloat()
-        val h = drawable.intrinsicHeight.toFloat()
-
-        val initialImageRect = RectF(0f, 0f, w, h)
-        initialImageCorners = getRectCorners(initialImageRect)
-        initialImageCenter = getRectCenter(initialImageRect)
-        bitmapLaidOut = true
-
-        val height = currentWidth / currentAspectRatio
-        if (height > currentHeight) {
-            val width = (currentHeight * currentAspectRatio).toInt()
-            val halfDiff = (currentWidth - width) / 2
-            cropRectF.set(halfDiff, 0f, (width + halfDiff), currentHeight)
-        } else {
-            val halfDiff = (currentHeight - height) / 2
-            cropRectF.set(0f, halfDiff, currentWidth, (height + halfDiff))
-        }
-        calculateImageScaleBounds(w, h)
-        setupInitialImagePosition(w, h)
-    }
-
-    private fun calculateImageScaleBounds(drawableWidth: Float, drawableHeight: Float) {
-        val widthScale: Float = Math.min(cropRectF.width() / drawableWidth, cropRectF.width() / drawableHeight)
-        val heightScale: Float = Math.min(cropRectF.height() / drawableHeight, cropRectF.height() / drawableWidth)
-        minScale = Math.min(widthScale, heightScale)
-        maxScale = minScale * maxScaleMultiplier
-    }
-
-    private fun setupInitialImagePosition(drawableWidth: Float, drawableHeight: Float) {
-        val cropRectWidth: Float = cropRectF.width()
-        val cropRectHeight: Float = cropRectF.height()
-        val widthScale: Float = cropRectF.width() / drawableWidth
-        val heightScale: Float = cropRectF.height() / drawableHeight
-        val initialMinScale = Math.max(widthScale, heightScale)
-        val tw: Float = (cropRectWidth - drawableWidth * initialMinScale) / 2.0f + cropRectF.left
-        val th: Float = (cropRectHeight - drawableHeight * initialMinScale) / 2.0f + cropRectF.top
-        currentImageMatrix.reset()
-        currentImageMatrix.postScale(initialMinScale, initialMinScale)
-        currentImageMatrix.postTranslate(tw, th)
-        imageMatrix = currentImageMatrix
-    }
-
     override fun setImageMatrix(matrix: Matrix?) {
         super.setImageMatrix(matrix)
         currentImageMatrix.set(matrix)
@@ -129,25 +88,14 @@ open class TopCropImageView @JvmOverloads constructor(
         currentImageMatrix.mapPoints(currentImageCenter, initialImageCenter)
     }
 
-    private fun postScale(deltaScale: Float, px: Float, py: Float) {
-        if (deltaScale != 0f) {
-            currentImageMatrix.postScale(deltaScale, deltaScale, px, py)
-            imageMatrix = currentImageMatrix
-        }
-    }
-
-    private fun postTranslate(deltaX: Float, deltaY: Float) {
-        if (deltaX != 0f || deltaY != 0f) {
-            currentImageMatrix.postTranslate(deltaX, deltaY)
-            imageMatrix = currentImageMatrix
-        }
-    }
-
-    private fun postRotate(deltaAngle: Float, px: Float, py: Float) {
-        if (deltaAngle != 0f) {
-            currentImageMatrix.postRotate(deltaAngle, px, py)
-            imageMatrix = currentImageMatrix
-        }
+    fun setCropRect(cropRect: RectF) {
+        currentAspectRatio = cropRect.width() / cropRect.height()
+        cropRectF.set(
+            cropRect.left - paddingLeft, cropRect.top - paddingTop,
+            cropRect.right - paddingRight, cropRect.bottom - paddingBottom
+        )
+        drawable?.let { calculateImageScaleBounds(it.intrinsicWidth.toFloat(), it.intrinsicHeight.toFloat()) }
+        setImageFitAspectRatio()
     }
 
     fun setTargetAspectRatio(aspectRatio: Float) {
@@ -155,7 +103,7 @@ open class TopCropImageView @JvmOverloads constructor(
         setImageFitAspectRatio()
     }
 
-    private fun setImageFitAspectRatio() {
+    fun setImageFitAspectRatio() {
         if (bitmapLaidOut && !isImageWrapCropBounds(currentImageCorners)) {
             val currentX: Float = currentImageCenter[0]
             val currentY: Float = currentImageCenter[1]
@@ -190,10 +138,91 @@ open class TopCropImageView @JvmOverloads constructor(
         }
     }
 
-    private fun zoomInImage(scale: Float, centerX: Float, centerY: Float) {
+    fun zoomImage(delta: Float) {
+        postScale(getMatrixScale(matrix) + 0.1f * delta, cropRectF.centerX(), cropRectF.centerY())
+    }
+
+    private fun postTranslate(deltaX: Float, deltaY: Float) {
+        if (deltaX != 0f || deltaY != 0f) {
+            currentImageMatrix.postTranslate(deltaX, deltaY)
+            imageMatrix = currentImageMatrix
+        }
+    }
+
+    private fun zoomInImage(scale: Float, centerX: Float = cropRectF.centerX(), centerY: Float = cropRectF.centerY()) {
         if (scale <= maxScale) {
             postScale(scale / getMatrixScale(currentImageMatrix), centerX, centerY)
         }
+    }
+
+    fun postScale(
+        deltaScale: Float,
+        px: Float = cropRectF.centerX(),
+        py: Float = cropRectF.centerY()
+    ) {
+        if (deltaScale != 0f) {
+            currentImageMatrix.postScale(deltaScale, deltaScale, px, py)
+            imageMatrix = currentImageMatrix
+            listener?.onScale(getMatrixScale(currentImageMatrix))
+        }
+    }
+
+    fun postRotate(
+        deltaAngle: Float,
+        px: Float = cropRectF.centerX(),
+        py: Float = cropRectF.centerY()
+    ) {
+        if (deltaAngle != 0f) {
+            currentImageMatrix.postRotate(deltaAngle, px, py)
+            imageMatrix = currentImageMatrix
+            listener?.onRotate(getMatrixAngle(currentImageMatrix))
+        }
+    }
+
+    private fun onImageLaidOut() {
+        val drawable = drawable ?: return
+        val w = drawable.intrinsicWidth.toFloat()
+        val h = drawable.intrinsicHeight.toFloat()
+
+        val initialImageRect = RectF(0f, 0f, w, h)
+        initialImageCorners = getRectCorners(initialImageRect)
+        initialImageCenter = getRectCenter(initialImageRect)
+        bitmapLaidOut = true
+
+        val height = currentWidth / currentAspectRatio
+        if (height > currentHeight) {
+            val width = (currentHeight * currentAspectRatio).toInt()
+            val halfDiff = (currentWidth - width) / 2
+            cropRectF.set(halfDiff, 0f, (width + halfDiff), currentHeight)
+        } else {
+            val halfDiff = (currentHeight - height) / 2
+            cropRectF.set(0f, halfDiff, currentWidth, (height + halfDiff))
+        }
+        calculateImageScaleBounds(w, h)
+        setupInitialImagePosition(w, h)
+        listener?.onScale(getMatrixScale(currentImageMatrix))
+        listener?.onRotate(getMatrixAngle(currentImageMatrix))
+    }
+
+    private fun calculateImageScaleBounds(drawableWidth: Float, drawableHeight: Float) {
+        val widthScale: Float = min(cropRectF.width() / drawableWidth, cropRectF.width() / drawableHeight)
+        val heightScale: Float = min(cropRectF.height() / drawableHeight, cropRectF.height() / drawableWidth)
+        minScale = min(widthScale, heightScale)
+        maxScale = minScale * maxScaleMultiplier
+    }
+
+    private fun setupInitialImagePosition(drawableWidth: Float, drawableHeight: Float) {
+        val cropRectWidth: Float = cropRectF.width()
+        val cropRectHeight: Float = cropRectF.height()
+        val widthScale: Float = cropRectF.width() / drawableWidth
+        val heightScale: Float = cropRectF.height() / drawableHeight
+        val initialMinScale = Math.max(widthScale, heightScale)
+        val tw: Float = (cropRectWidth - drawableWidth * initialMinScale) / 2.0f + cropRectF.left
+        val th: Float = (cropRectHeight - drawableHeight * initialMinScale) / 2.0f + cropRectF.top
+        currentImageMatrix.reset()
+        currentImageMatrix.postScale(initialMinScale, initialMinScale)
+        currentImageMatrix.postTranslate(tw, th)
+        imageMatrix = currentImageMatrix
     }
 
     private fun calculateImageIndents(): FloatArray {
@@ -241,7 +270,7 @@ open class TopCropImageView @JvmOverloads constructor(
             + getMatrixValue(matrix, Matrix.MSKEW_Y).toDouble().pow(2.0)
     ).toFloat()
 
-    protected open fun getMatrixValue(
+    private fun getMatrixValue(
         matrix: Matrix,
         @IntRange(from = 0, to = 9) valueIndex: Int
     ): Float {
@@ -249,17 +278,6 @@ open class TopCropImageView @JvmOverloads constructor(
         matrix.getValues(matrixValues)
         return matrixValues[valueIndex]
     }
-
-    open fun setCropRect(cropRect: RectF) {
-        currentAspectRatio = cropRect.width() / cropRect.height()
-        cropRectF.set(
-            cropRect.left - paddingLeft, cropRect.top - paddingTop,
-            cropRect.right - paddingRight, cropRect.bottom - paddingBottom
-        )
-        drawable?.let { calculateImageScaleBounds(it.intrinsicWidth.toFloat(), it.intrinsicHeight.toFloat()) }
-        setImageFitAspectRatio()
-    }
-
 
     private inner class ScaleListener : SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
@@ -278,6 +296,11 @@ open class TopCropImageView @JvmOverloads constructor(
             postTranslate(-distanceX, -distanceY)
             return true
         }
+    }
+
+    interface Listener {
+        fun onRotate(angle: Float)
+        fun onScale(scale: Float)
     }
 
     companion object {

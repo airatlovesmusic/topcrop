@@ -7,11 +7,16 @@ import android.graphics.BitmapFactory
 import android.graphics.RectF
 import android.net.Uri
 import android.os.Bundle
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import com.airatlovesmusic.topcrop.databinding.ActivityCropBinding
 import com.airatlovesmusic.topcrop.input.CropOptions
 import com.airatlovesmusic.topcrop.view.GridView
+import com.airatlovesmusic.topcrop.view.TopCropImageView
+import com.airatlovesmusic.topcrop.view.WheelView
 import com.google.android.material.tabs.TabLayout
+import java.util.*
 
 class TopCropActivity: AppCompatActivity() {
 
@@ -22,30 +27,84 @@ class TopCropActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCropBinding.inflate(layoutInflater).apply {
-            ibBack.setOnClickListener { finish() }
+            setUpCropView()
+            setUpAspectRatios()
+            setUpRotateWidget()
+            setUpScaleWidget()
+            setUpBottomNavigationWidget()
+            ibClose.setOnClickListener { finish() }
             ibDone.setOnClickListener {
                 setResult(Activity.RESULT_OK, Intent().apply { data = inputUri })
                 finish()
-            }
-            contentResolver.openInputStream(inputUri)?.use {
-                cropView.setImageBitmap(BitmapFactory.decodeStream(it))
-            }
-            setUpAspectRatios()
-            gridView.listener = object: GridView.Listener {
-                override fun onCropRectUpdated(cropRect: RectF) { cropView.setCropRect(cropRect) }
             }
         }
         setContentView(binding?.root)
     }
 
+    private fun ActivityCropBinding.setUpBottomNavigationWidget() {
+        bnvItems.setOnItemSelectedListener {
+            flRotate.isVisible = false
+            flScale.isVisible = false
+            tlAspectRatios.isVisible = false
+            when (it.itemId) {
+                R.id.item_crop -> tlAspectRatios.isVisible = true
+                R.id.item_rotate -> flRotate.isVisible = true
+                else -> flScale.isVisible = true
+            }
+            true
+        }
+    }
+
+    private fun ActivityCropBinding.setUpScaleWidget() {
+        ibPlus.setOnClickListener {
+            cropView.zoomImage(1f)
+            cropView.setImageFitAspectRatio()
+        }
+        ibMinus.setOnClickListener {
+            cropView.zoomImage(-1f)
+            cropView.setImageFitAspectRatio()
+        }
+        wheelScale.listener = object : WheelView.Listener {
+            override fun onScroll(delta: Float, totalDistance: Float) { cropView.zoomImage(delta / 100f) }
+            override fun onScrollEnd() { cropView.setImageFitAspectRatio() }
+        }
+    }
+
+    private fun ActivityCropBinding.setUpRotateWidget() {
+        ibRotateLeft.setOnClickListener {
+            cropView.postRotate(-90f)
+            cropView.setImageFitAspectRatio()
+        }
+        ibRotateRight.setOnClickListener {
+            cropView.postRotate(90f)
+            cropView.setImageFitAspectRatio()
+        }
+        wheelRotation.listener = object : WheelView.Listener {
+            override fun onScroll(delta: Float, totalDistance: Float) { cropView.postRotate(delta / ROTATE_WIDGET_SENSITIVITY) }
+            override fun onScrollEnd() { cropView.setImageFitAspectRatio() }
+        }
+    }
+
+    private fun ActivityCropBinding.setUpCropView() {
+        contentResolver.openInputStream(inputUri)?.use { cropView.setImageBitmap(BitmapFactory.decodeStream(it)) }
+        cropView.listener = object : TopCropImageView.Listener {
+            override fun onRotate(angle: Float) { tvRotationValue.text = String.format(Locale.getDefault(), "%.1f°", angle) }
+            override fun onScale(scale: Float) { tvScaleValue.text = String.format(Locale.getDefault(), "%d%%", (scale * 100).toInt()) }
+        }
+        gridView.listener = object: GridView.Listener {
+            override fun onCropRectUpdated(cropRect: RectF) { cropView.setCropRect(cropRect) }
+        }
+    }
+
     private fun ActivityCropBinding.setUpAspectRatios() {
         options.aspectRatios.forEach {
-            tlRatios.addTab(
-                tlRatios.newTab()
-                    .setText(it.title)
+            tlAspectRatios.addTab(
+                tlAspectRatios.newTab()
+                    .setCustomView(R.layout.tab_layout)
+                    .apply { customView?.findViewById<TextView>(R.id.tv_title)?.text = it.title }
             )
         }
-        tlRatios.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+        tlAspectRatios.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 val currentAspectRatio = options.aspectRatios[tab.position].let { it.y / it.x }
                 gridView.setTargetAspectRatio(currentAspectRatio)
@@ -61,6 +120,8 @@ class TopCropActivity: AppCompatActivity() {
     companion object {
         private const val ARG_OPTIONS = BuildConfig.LIBRARY_PACKAGE_NAME + ".options"
         private const val ARG_URI = BuildConfig.LIBRARY_PACKAGE_NAME + ".uri"
+
+        private const val ROTATE_WIDGET_SENSITIVITY = 42
 
         fun createIntent(
             context: Context,
